@@ -1,6 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const Insight = require('../models/insight');
+const multer = require('multer');
+const path = require('path');
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Files will be uploaded to the 'uploads/' directory
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid filename conflicts
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Get all insights
 router.get('/', async (req, res) => {
@@ -27,16 +41,19 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new insight
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
+  console.log('Received file:', req.file);
   try {
-    const { title, content, author, date, tags, imageUrl } = req.body;
+    const { title, content, author, date, tags } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : ''; // Get image URL if file uploaded
+
     const newInsight = new Insight({
       title,
       content,
       author,
       date,
-      tags,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [], // Split tags by comma and trim whitespace
       imageUrl
     });
     const savedInsight = await newInsight.save();
@@ -47,12 +64,18 @@ router.post('/', async (req, res) => {
 });
 
 // Update an existing insight
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
   try {
-    const { title, content, author, date, tags, imageUrl } = req.body;
+    const { title, content, author, date, tags } = req.body;
+    let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
+
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`; // Update imageUrl if new file uploaded
+    }
+
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
-      { title, content, author, date, tags, imageUrl },
+      { title, content, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], imageUrl },
       { new: true, runValidators: true }
     );
     if (updatedInsight) {
