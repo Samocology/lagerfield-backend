@@ -28,6 +28,7 @@ router.get('/:id', async (req, res) => {
 
 // Create a new insight
 router.post('/', async (req, res) => {
+  console.log('Received insight creation request. req.body:', req.body);
   try {
     const { title, content, author, date, tags, imageUrl } = req.body;
     const newInsight = new Insight({
