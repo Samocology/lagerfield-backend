@@ -5,6 +5,14 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 const connectDB = require('./db');
+const fs = require('fs');
+const path = require('path');
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 const insightsRouter = require('./routes/insights');
 const servicesRouter = require('./routes/services');
