@@ -41,12 +41,22 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new insight
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
-  console.log('Received file:', req.file);
+  console.log('Received files:', req.files);
   try {
     const { title, content, author, date, tags } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : ''; // Get image URL if file uploaded
+    const imageUrl = req.files && req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '';
+    const fileUrl = req.files && req.files['file'] ? `/uploads/${req.files['file'][0].filename}` : '';
+
+    console.log('Extracted fields:');
+    console.log('  title:', title);
+    console.log('  content:', content);
+    console.log('  author:', author);
+    console.log('  date:', date);
+    console.log('  tags:', tags);
+    console.log('  imageUrl:', imageUrl);
+    console.log('  fileUrl:', fileUrl);
 
     const newInsight = new Insight({
       title,
@@ -54,28 +64,33 @@ router.post('/', upload.single('file'), async (req, res) => {
       author,
       date,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [], // Split tags by comma and trim whitespace
-      imageUrl
+      imageUrl,
+      fileUrl
     });
     const savedInsight = await newInsight.save();
     res.status(201).json(savedInsight);
   } catch (error) {
+    console.error('Error creating insight:', error);
     res.status(400).json({ message: error.message });
   }
 });
 
 // Update an existing insight
-router.put('/:id', upload.single('file'), async (req, res) => {
+router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
   try {
     const { title, content, author, date, tags } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
+    let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
-    if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`; // Update imageUrl if new file uploaded
+        if (req.files && req.files['image']) {
+      imageUrl = `/uploads/${req.files['image'][0].filename}`; // Update imageUrl if new image uploaded
+         }
+        if (req.files && req.files['file']) {
+      fileUrl = `/uploads/${req.files['file'][0].filename}`; // Update fileUrl if new file uploaded
     }
-
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
-      { title, content, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], imageUrl },
+      { title, content, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], imageUrl, fileUrl},
       { new: true, runValidators: true }
     );
     if (updatedInsight) {
@@ -84,6 +99,7 @@ router.put('/:id', upload.single('file'), async (req, res) => {
       res.status(404).json({ message: 'Insight not found' });
     }
   } catch (error) {
+    console.error('Error updating insight:', error);
     res.status(400).json({ message: error.message });
   }
 });
