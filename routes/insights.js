@@ -41,7 +41,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new insight
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.single('file'), async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
   console.log('Received file:', req.file);
   try {
@@ -64,7 +64,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 // Update an existing insight
-router.put('/:id', upload.single('image'), async (req, res) => {
+router.put('/:id', upload.single('file'), async (req, res) => {
   try {
     const { title, content, author, date, tags } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
