@@ -38,6 +38,18 @@ router.get('/:idOrSlug', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, description, slug, icon, imageUrl } = req.body;
+
+    // Basic validation for required fields
+    if (!name) {
+      return res.status(400).json({ message: 'Service name is required.' });
+    }
+    if (!description) {
+      return res.status(400).json({ message: 'Service description is required.' });
+    }
+    if (!slug) {
+      return res.status(400).json({ message: 'Service slug is required.' });
+    }
+
     const newService = new Service({
       name,
       description,
@@ -51,6 +63,11 @@ router.post('/', async (req, res) => {
     if (error.code === 11000) {
       res.status(400).json({ message: 'Service slug must be unique' });
     } else {
+      // Mongoose validation errors
+      if (error.name === 'ValidationError') {
+        const errors = Object.values(error.errors).map(err => err.message);
+        return res.status(400).json({ message: errors.join(', ') });
+      }
       res.status(400).json({ message: error.message });
     }
   }
