@@ -8,7 +8,7 @@ const insightSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: true
+    required: false
   },
   author: {
     type: String,
@@ -24,6 +24,10 @@ const insightSchema = new mongoose.Schema({
     trim: true
   }],
   imageUrl: {
+    type: String,
+    trim: true
+  },
+  fileUrl: {
     type: String,
     trim: true
   }
