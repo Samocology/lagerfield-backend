@@ -3,6 +3,7 @@ const router = express.Router();
 const Insight = require('../models/insight');
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -28,6 +29,11 @@ router.get('/', async (req, res) => {
 
 // Get a single insight by ID
 router.get('/:id', async (req, res) => {
+  
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ message: 'Invalid ID format' });
+  }
+
   try {
     const insight = await Insight.findById(req.params.id);
     if (insight) {
@@ -71,6 +77,9 @@ router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', 
     res.status(201).json(savedInsight);
   } catch (error) {
     console.error('Error creating insight:', error);
+    if (error.stack) {
+      console.error('Error stack:', error.stack);
+    }
     res.status(400).json({ message: error.message });
   }
 });
