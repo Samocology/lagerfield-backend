@@ -52,8 +52,8 @@ router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', 
   console.log('Received files:', req.files);
   try {
     const { title, content, author, date, tags } = req.body;
-    const imageUrl = req.files && req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '';
-    const fileUrl = req.files && req.files['file'] ? `/uploads/${req.files['file'][0].filename}` : '';
+    const imageUrl = req.files && req.files['image'] ? `/api/uploads/${req.files['image'][0].filename}` : '';
+    const fileUrl = req.files && req.files['file'] ? `/api/uploads/${req.files['file'][0].filename}` : '';
 
     console.log('Extracted fields:');
     console.log('  title:', title);
@@ -92,10 +92,10 @@ router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file'
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
         if (req.files && req.files['image']) {
-      imageUrl = `/uploads/${req.files['image'][0].filename}`; // Update imageUrl if new image uploaded
+      imageUrl = `/api/uploads/${req.files['image'][0].filename}`; // Update imageUrl if new image uploaded
          }
         if (req.files && req.files['file']) {
-      fileUrl = `/uploads/${req.files['file'][0].filename}`; // Update fileUrl if new file uploaded
+      fileUrl = `/api/uploads/${req.files['file'][0].filename}`; // Update fileUrl if new file uploaded
     }
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,

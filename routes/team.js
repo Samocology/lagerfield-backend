@@ -61,7 +61,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     // Generate image URL (relative path that frontend can resolve)
     let imageUrl = null;
     if (req.file) {
-      imageUrl = `/uploads/${req.file.filename}`;
+      imageUrl = `/api/uploads/${req.file.filename}`;
     }
 
     const newTeamMember = new TeamMember({
@@ -102,7 +102,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
     // If a new image is uploaded, use it; otherwise keep existing imageUrl or use provided one
     if (req.file) {
-      updateData.imageUrl = `/uploads/${req.file.filename}`;
+      updateData.imageUrl = `/api/uploads/${req.file.filename}`;
     } else if (imageUrl) {
       updateData.imageUrl = imageUrl;
     }
