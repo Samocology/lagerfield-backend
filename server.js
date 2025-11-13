@@ -26,7 +26,8 @@ const authRouter = require('./routes/auth');
 connectDB();
 
 app.use(express.json()); // For parsing application/json
-app.use(express.static('uploads')); // Serve uploaded files
+// Serve uploaded files under the /api/uploads path so frontend can request /api/uploads/<filename>
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
