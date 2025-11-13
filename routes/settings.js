@@ -67,7 +67,7 @@ router.post('/upload-profile-image', authenticateToken, requireAdmin, upload.sin
       return res.status(400).json({ message: 'No file uploaded' });
     }
     // In a real app, you'd save the file path to user profile, but for now we'll just return the path
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = `/api/uploads/${req.file.filename}`;
     res.json({ imageUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
