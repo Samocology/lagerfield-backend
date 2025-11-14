@@ -32,7 +32,11 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 // Enable CORS for all routes
 app.use((req, res, next) => {
   console.log('CORS middleware executed for:', req.method, req.url); // Debugging line
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+  const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');

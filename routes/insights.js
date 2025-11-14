@@ -20,9 +20,12 @@ const upload = multer({ storage: storage });
 // Get all insights
 router.get('/', async (req, res) => {
   try {
+    console.log('Fetching insights...');
     const insights = await Insight.find().sort({ date: -1 });
+    console.log('Insights fetched:', insights.length);
     res.json(insights);
   } catch (error) {
+    console.error('Error fetching insights:', error);
     res.status(500).json({ message: error.message });
   }
 });
