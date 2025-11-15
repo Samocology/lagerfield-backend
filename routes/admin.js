@@ -4,6 +4,7 @@ const Insight = require('../models/insight');
 const Service = require('../models/service');
 const TeamMember = require('../models/teamMember');
 const ContactForm = require('../models/contactForm');
+const Visitor = require('../models/visitor');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 // Get aggregated statistics for the admin dashboard
@@ -56,6 +57,18 @@ router.get('/insights-overview', authenticateToken, requireAdmin, async (req, re
       tagDistribution: tagCounts,
       recentInsights: insights.slice(0, 5)
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Track visitor analytics
+router.post('/analytics/visitors', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const visitorData = req.body;
+    const visitor = new Visitor(visitorData);
+    await visitor.save();
+    res.status(201).json({ message: 'Visitor data recorded successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
