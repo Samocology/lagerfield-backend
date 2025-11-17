@@ -65,7 +65,7 @@ router.post('/', upload.any(), async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
   console.log('Received files:', req.files);
   try {
-    const { title, content, author, date, tags } = req.body;
+    const { title, body, author, date, tags, category, summary } = req.body;
     const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
     const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
     const imageUrl = imageFile ? imageFile.path : '';
@@ -73,19 +73,23 @@ router.post('/', upload.any(), async (req, res) => {
 
     console.log('Extracted fields:');
     console.log('  title:', title);
-    console.log('  content:', content);
+    console.log('  body:', body);
     console.log('  author:', author);
     console.log('  date:', date);
     console.log('  tags:', tags);
+    console.log('  category:', category);
+    console.log('  summary:', summary);
     console.log('  imageUrl:', imageUrl);
     console.log('  fileUrl:', fileUrl);
 
     const newInsight = new Insight({
       title,
-      content,
+      body,
       author,
       date,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [], // Split tags by comma and trim whitespace
+      category,
+      summary,
       imageUrl,
       fileUrl
     });
@@ -103,7 +107,7 @@ router.post('/', upload.any(), async (req, res) => {
 // Update an existing insight
 router.put('/:id', upload.any(), async (req, res) => {
   try {
-    const { title, content, author, date, tags } = req.body;
+    const { title, body, author, date, tags, category, summary } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
@@ -119,7 +123,7 @@ router.put('/:id', upload.any(), async (req, res) => {
 
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
-      { title, content, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], imageUrl, fileUrl},
+      { title, body, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], category, summary, imageUrl, fileUrl},
       { new: true, runValidators: true }
     );
     if (updatedInsight) {

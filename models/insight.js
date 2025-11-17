@@ -6,7 +6,7 @@ const insightSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  content: {
+  body: {
     type: String,
     required: false
   },
@@ -23,6 +23,16 @@ const insightSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  category: {
+    type: String,
+    required: false,
+    trim: true
+  },
+  summary: {
+    type: String,
+    required: false,
+    trim: true
+  },
   imageUrl: {
     type: String,
     trim: true
