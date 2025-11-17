@@ -1,23 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 const TeamMember = require('../models/teamMember');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-randomId-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// Configure multer for file uploads with Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'lagerfield/team',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
   }
 });
 
@@ -26,7 +20,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     // Accept image files only
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(require('path').extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
 
     if (mimetype && extname) {
@@ -61,10 +55,10 @@ router.post('/', upload.single('image'), async (req, res) => {
       return res.status(400).json({ message: 'Name and title are required' });
     }
 
-    // Generate image URL (relative path that frontend can resolve)
+    // Use Cloudinary URL
     let imageUrl = null;
     if (req.file) {
-      imageUrl = `/api/uploads/${req.file.filename}`;
+      imageUrl = req.file.path;
     }
 
     const newTeamMember = new TeamMember({
@@ -79,12 +73,6 @@ router.post('/', upload.single('image'), async (req, res) => {
     const savedTeamMember = await newTeamMember.save();
     res.status(201).json(savedTeamMember);
   } catch (error) {
-    // Clean up uploaded file if there's a database error
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting file:', err);
-      });
-    }
     res.status(400).json({ message: error.message });
   }
 });
@@ -105,7 +93,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
     // If a new image is uploaded, use it; otherwise keep existing imageUrl or use provided one
     if (req.file) {
-      updateData.imageUrl = `/api/uploads/${req.file.filename}`;
+      updateData.imageUrl = req.file.path;
     } else if (imageUrl) {
       updateData.imageUrl = imageUrl;
     }
@@ -124,12 +112,6 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       res.status(404).json({ message: 'Team member not found' });
     }
   } catch (error) {
-    // Clean up uploaded file if there's an error
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting file:', err);
-      });
-    }
     res.status(400).json({ message: error.message });
   }
 });
@@ -139,15 +121,6 @@ router.delete('/:id', async (req, res) => {
   try {
     const teamMember = await TeamMember.findByIdAndDelete(req.params.id);
     if (teamMember) {
-      // Clean up the image file if it exists
-      if (teamMember.imageUrl) {
-        const filePath = path.join(__dirname, '../uploads', path.basename(teamMember.imageUrl));
-        fs.unlink(filePath, (err) => {
-          if (err && err.code !== 'ENOENT') {
-            console.error('Error deleting file:', err);
-          }
-        });
-      }
       res.status(204).send(); // No Content
     } else {
       res.status(404).json({ message: 'Team member not found' });

@@ -2,16 +2,17 @@ const express = require('express');
 const router = express.Router();
 const Insight = require('../models/insight');
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
 
-// Multer configuration for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Files will be uploaded to the 'uploads/' directory
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid filename conflicts
+// Configure multer for file uploads with Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'lagerfield/insights',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp', 'pdf'],
+    transformation: [{ width: 800, height: 600, crop: 'limit' }]
   }
 });
 
@@ -55,8 +56,8 @@ router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', 
   console.log('Received files:', req.files);
   try {
     const { title, content, author, date, tags } = req.body;
-    const imageUrl = req.files && req.files['image'] ? `/api/uploads/${req.files['image'][0].filename}` : '';
-    const fileUrl = req.files && req.files['file'] ? `/api/uploads/${req.files['file'][0].filename}` : '';
+    const imageUrl = req.files && req.files['image'] ? req.files['image'][0].path : '';
+    const fileUrl = req.files && req.files['file'] ? req.files['file'][0].path : '';
 
     console.log('Extracted fields:');
     console.log('  title:', title);
@@ -95,10 +96,10 @@ router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file'
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
         if (req.files && req.files['image']) {
-      imageUrl = `/api/uploads/${req.files['image'][0].filename}`; // Update imageUrl if new image uploaded
+      imageUrl = req.files['image'][0].path; // Update imageUrl if new image uploaded
          }
         if (req.files && req.files['file']) {
-      fileUrl = `/api/uploads/${req.files['file'][0].filename}`; // Update fileUrl if new file uploaded
+      fileUrl = req.files['file'][0].path; // Update fileUrl if new file uploaded
     }
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,

@@ -2,17 +2,17 @@ const express = require('express');
 const router = express.Router();
 const Settings = require('../models/settings');
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Make sure this directory exists
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+// Configure multer for image uploads with Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'lagerfield/settings',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
   }
 });
 
@@ -67,7 +67,7 @@ router.post('/upload-profile-image', authenticateToken, requireAdmin, upload.sin
       return res.status(400).json({ message: 'No file uploaded' });
     }
     // In a real app, you'd save the file path to user profile, but for now we'll just return the path
-    const imageUrl = `/api/uploads/${req.file.filename}`;
+    const imageUrl = req.file.path;
     res.json({ imageUrl });
   } catch (error) {
     res.status(500).json({ message: error.message });
