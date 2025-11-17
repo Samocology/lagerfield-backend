@@ -6,43 +6,27 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
 
-// Configure multer for image uploads with Cloudinary
-const imageStorage = new CloudinaryStorage({
+// Custom Cloudinary storage that switches based on field name
+const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'lagerfield/insights/images',
-    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
-    transformation: [{ width: 800, height: 600, crop: 'limit' }]
+  params: (req, file) => {
+    if (file.fieldname === 'image') {
+      return {
+        folder: 'lagerfield/insights/images',
+        allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+        transformation: [{ width: 800, height: 600, crop: 'limit' }]
+      };
+    } else if (file.fieldname === 'file') {
+      return {
+        folder: 'lagerfield/insights/files',
+        allowed_formats: ['pdf'],
+        resource_type: 'raw'
+      };
+    }
   }
 });
 
-// Configure multer for file uploads with Cloudinary (PDFs and other files)
-const fileStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'lagerfield/insights/files',
-    allowed_formats: ['pdf'],
-    resource_type: 'raw'
-  }
-});
-
-// Create separate upload middlewares for images and files
-const uploadImage = multer({ storage: imageStorage });
-const uploadFile = multer({ storage: fileStorage });
-
-// Combined upload middleware for both image and file fields
-const upload = (req, res, next) => {
-  // Handle image upload
-  uploadImage.fields([{ name: 'image', maxCount: 1 }])(req, res, (err) => {
-    if (err) return next(err);
-
-    // Handle file upload
-    uploadFile.fields([{ name: 'file', maxCount: 1 }])(req, res, (err) => {
-      if (err) return next(err);
-      next();
-    });
-  });
-};
+const upload = multer({ storage: storage });
 
 // Get all insights
 router.get('/', async (req, res) => {
@@ -77,13 +61,15 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new insight
-router.post('/', upload, async (req, res) => {
+router.post('/', upload.any(), async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
   console.log('Received files:', req.files);
   try {
     const { title, content, author, date, tags } = req.body;
-    const imageUrl = req.files && req.files['image'] ? req.files['image'][0].path : '';
-    const fileUrl = req.files && req.files['file'] ? req.files['file'][0].path : '';
+    const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
+    const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
+    const imageUrl = imageFile ? imageFile.path : '';
+    const fileUrl = fileFile ? fileFile.path : '';
 
     console.log('Extracted fields:');
     console.log('  title:', title);
@@ -115,18 +101,22 @@ router.post('/', upload, async (req, res) => {
 });
 
 // Update an existing insight
-router.put('/:id', upload, async (req, res) => {
+router.put('/:id', upload.any(), async (req, res) => {
   try {
     const { title, content, author, date, tags } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
-        if (req.files && req.files['image']) {
-      imageUrl = req.files['image'][0].path; // Update imageUrl if new image uploaded
-         }
-        if (req.files && req.files['file']) {
-      fileUrl = req.files['file'][0].path; // Update fileUrl if new file uploaded
+    const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
+    const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
+
+    if (imageFile) {
+      imageUrl = imageFile.path; // Update imageUrl if new image uploaded
     }
+    if (fileFile) {
+      fileUrl = fileFile.path; // Update fileUrl if new file uploaded
+    }
+
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
       { title, content, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], imageUrl, fileUrl},
