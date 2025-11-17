@@ -35,9 +35,7 @@ const upload = multer({
 // Get all team members
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching team members...');
     const teamMembers = await TeamMember.find();
-    console.log('Team members fetched:', teamMembers.length);
     res.json(teamMembers);
   } catch (error) {
     console.error('Error fetching team members:', error);

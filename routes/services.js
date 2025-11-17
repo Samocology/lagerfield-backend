@@ -5,9 +5,7 @@ const Service = require('../models/service');
 // Get all services
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching services...');
     const services = await Service.find();
-    console.log('Services fetched:', services.length);
     res.json(services);
   } catch (error) {
     console.error('Error fetching services:', error);

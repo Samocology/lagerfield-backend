@@ -1,6 +1,4 @@
-console.log('Current working directory:', process.cwd());
 require('dotenv').config({ path: './.env' });
-console.log('MONGO_URI:', process.env.MONGO_URI);
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,7 +29,6 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-  console.log('CORS middleware executed for:', req.method, req.url); // Debugging line
   const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app'];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
@@ -63,5 +60,4 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/auth', authRouter);
 
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
 });
