@@ -31,9 +31,7 @@ const upload = multer({ storage: storage });
 // Get all insights
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching insights...');
     const insights = await Insight.find().sort({ date: -1 });
-    console.log('Insights fetched:', insights.length);
     res.json(insights);
   } catch (error) {
     console.error('Error fetching insights:', error);
@@ -62,25 +60,12 @@ router.get('/:id', async (req, res) => {
 
 // Create a new insight
 router.post('/', upload.any(), async (req, res) => {
-  console.log('Received insight creation request. req.body:', req.body);
-  console.log('Received files:', req.files);
   try {
     const { title, body, author, date, tags, category, summary } = req.body;
     const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
     const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
     const imageUrl = imageFile ? imageFile.path : '';
     const fileUrl = fileFile ? fileFile.path : '';
-
-    console.log('Extracted fields:');
-    console.log('  title:', title);
-    console.log('  body:', body);
-    console.log('  author:', author);
-    console.log('  date:', date);
-    console.log('  tags:', tags);
-    console.log('  category:', category);
-    console.log('  summary:', summary);
-    console.log('  imageUrl:', imageUrl);
-    console.log('  fileUrl:', fileUrl);
 
     const newInsight = new Insight({
       title,
