@@ -6,17 +6,43 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
 
-// Configure multer for file uploads with Cloudinary
-const storage = new CloudinaryStorage({
+// Configure multer for image uploads with Cloudinary
+const imageStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'lagerfield/insights',
-    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp', 'pdf'],
+    folder: 'lagerfield/insights/images',
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
     transformation: [{ width: 800, height: 600, crop: 'limit' }]
   }
 });
 
-const upload = multer({ storage: storage });
+// Configure multer for file uploads with Cloudinary (PDFs and other files)
+const fileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'lagerfield/insights/files',
+    allowed_formats: ['pdf'],
+    resource_type: 'raw'
+  }
+});
+
+// Create separate upload middlewares for images and files
+const uploadImage = multer({ storage: imageStorage });
+const uploadFile = multer({ storage: fileStorage });
+
+// Combined upload middleware for both image and file fields
+const upload = (req, res, next) => {
+  // Handle image upload
+  uploadImage.fields([{ name: 'image', maxCount: 1 }])(req, res, (err) => {
+    if (err) return next(err);
+
+    // Handle file upload
+    uploadFile.fields([{ name: 'file', maxCount: 1 }])(req, res, (err) => {
+      if (err) return next(err);
+      next();
+    });
+  });
+};
 
 // Get all insights
 router.get('/', async (req, res) => {
@@ -51,7 +77,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new insight
-router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
+router.post('/', upload, async (req, res) => {
   console.log('Received insight creation request. req.body:', req.body);
   console.log('Received files:', req.files);
   try {
@@ -89,7 +115,7 @@ router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', 
 });
 
 // Update an existing insight
-router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'file', maxCount: 1 }]), async (req, res) => {
+router.put('/:id', upload, async (req, res) => {
   try {
     const { title, content, author, date, tags } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
