@@ -63,7 +63,7 @@ router.get('/insights-overview', authenticateToken, requireAdmin, async (req, re
 });
 
 // Track visitor analytics
-router.post('/analytics/visitors', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/analytics/visitors', async (req, res) => {
   try {
     const visitorData = req.body;
     const visitor = new Visitor(visitorData);
