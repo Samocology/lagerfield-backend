@@ -26,6 +26,8 @@ connectDB();
 app.use(express.json()); // For parsing application/json
 // Serve uploaded files under the /api/uploads path so frontend can request /api/uploads/<filename>
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+// Also serve under /uploads for compatibility with frontend requests
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
