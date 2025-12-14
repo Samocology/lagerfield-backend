@@ -9,18 +9,32 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  firstName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   email: {
     type: String,
     required: true,
     unique: true,
     trim: true,
     lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+    match: [/^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,3})+$/, 'Please fill a valid email address']
   },
   password: {
     type: String,
     required: true,
     minlength: 6
+  },
+  avatarUrl: {
+    type: String,
+    default: ''
   },
   role: {
     type: String,
