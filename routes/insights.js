@@ -41,13 +41,13 @@ router.get('/', async (req, res) => {
 
 // Get a single insight by ID
 router.get('/:id', async (req, res) => {
-  
+
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'Invalid ID format' });
   }
 
   try {
-    const insight = await Insight.findById(req.params.id);
+    const insight = await Insight.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
     if (insight) {
       res.json(insight);
     } else {

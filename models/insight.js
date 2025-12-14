@@ -40,6 +40,10 @@ const insightSchema = new mongoose.Schema({
   fileUrl: {
     type: String,
     trim: true
+  },
+  views: {
+    type: Number,
+    default: 0
   }
 });
 
