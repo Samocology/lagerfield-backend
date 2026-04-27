@@ -31,18 +31,10 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
-const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfield-backend.onrender.com', 'https://www.lagerfieldcapital.com'];
+const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfieldcapital.com', 'https://lagerfield-backend.onrender.com'];
 app.use(cors({
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+  origin: allowedOrigins,
+  credentials: true
 }));
 
 app.get('/', (req, res) => {
