@@ -9,7 +9,6 @@ const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
 
-
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -25,15 +24,14 @@ const adminRouter = require('./routes/admin');
 const settingsRouter = require('./routes/settings');
 const authRouter = require('./routes/auth');
 
-
 // DB CONNECTION
 connectDB();
 
-// CORS CONFIG (FIXED)
+// CORS CONFIG 
 const allowedOrigins = [
   'http://localhost:8080',
   'https://lagerfield.vercel.app',
-  'https://lagerfieldcapital.com'
+  'https://www.lagerfieldcapital.com'
 ];
 
 const corsOptions = {
@@ -52,10 +50,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-
-// MIDDLEWARE (ORDER IS IMPORTANT)
-
-// MUST be first
+// MIDDLEWARE
 app.use(cors(corsOptions));
 
 // Handle preflight requests
@@ -68,7 +63,6 @@ app.use(express.json());
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 // ROUTES MOUNTING
 app.use('/api/insights', insightsRouter);
 app.use('/api/services', servicesRouter);
@@ -78,10 +72,18 @@ app.use('/api/admin', adminRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/auth', authRouter);
 
-
 // BASE ROUTE
 app.get('/', (req, res) => {
   res.send('Lagerfield Capital Backend is running!');
+});
+
+// ERROR HANDLING MIDDLEWARE 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    message: 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
 });
 
 // START SERVER
