@@ -31,7 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfield-backend.onrender.com', 'https://www.lagerfieldcapital.com'];
+  const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfieldcapital.com', 'https://lagerfield-backend.onrender.com'];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
