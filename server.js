@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
 const connectDB = require('./db');
-const fs = require('fs');
+const cors = require('cors');
 const path = require('path');
 
 // Ensure uploads directory exists
@@ -30,24 +30,19 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Enable CORS for all routes
-app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfield-backend.onrender.com', 'https://www.lagerfieldcapital.com'];
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-
-  // Intercepts OPTIONS method
-  if (req.method === 'OPTIONS') {
-    // Pre-flight request. Reply successfully:
-    res.sendStatus(204);
-  } else {
-    next();
-  }
-});
+const allowedOrigins = ['http://localhost:8080', 'https://lagerfield.vercel.app', 'https://lagerfield-backend.onrender.com', 'https://www.lagerfieldcapital.com'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+}));
 
 app.get('/', (req, res) => {
   res.send('Lagerfield Capital Backend is running!');
