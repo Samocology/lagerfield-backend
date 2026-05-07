@@ -19,6 +19,10 @@ const teamMemberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  department: {
+    type: String,
+    trim: true
+  },
   imageUrl: {
     type: String,
     trim: true

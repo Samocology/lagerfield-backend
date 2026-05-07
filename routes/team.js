@@ -43,6 +43,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get a single team member by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const teamMember = await TeamMember.findById(req.params.id);
+    if (teamMember) {
+      res.json(teamMember);
+    } else {
+      res.status(404).json({ message: 'Team member not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Create a new team member with image upload
 router.post('/', upload.single('image'), async (req, res) => {
   try {
