@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
 // Create a new team member with image upload
 router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { name, title, email, bio, socialLinks } = req.body;
+    const { name, title, email, bio, socialLinks, department } = req.body;
     
     // Validate required fields
     if (!name || !title) {
@@ -64,6 +64,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       title,
       email,
       bio,
+      department,
       imageUrl,
       socialLinks: socialLinks ? JSON.parse(socialLinks) : {}
     });
@@ -78,7 +79,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 // Update an existing team member
 router.put('/:id', upload.single('image'), async (req, res) => {
   try {
-    const { name, title, email, bio, imageUrl, socialLinks } = req.body;
+    const { name, title, email, bio, imageUrl, socialLinks, department } = req.body;
     
     // Build update object
     const updateData = {
@@ -86,6 +87,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       title,
       email,
       bio,
+      department,
       socialLinks: socialLinks ? JSON.parse(socialLinks) : undefined
     };
 
