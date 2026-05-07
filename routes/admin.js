@@ -8,8 +8,6 @@ const mongoose = require('mongoose');
 const Visitor = require('../models/visitor');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-const mongoose = require('mongoose');
-
 // Platform health check
 router.get('/platform-health', authenticateToken, requireAdmin, async (req, res) => {
   try {
