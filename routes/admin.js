@@ -4,10 +4,54 @@ const Insight = require('../models/insight');
 const Service = require('../models/service');
 const TeamMember = require('../models/teamMember');
 const ContactForm = require('../models/contactForm');
+const mongoose = require('mongoose');
 const Visitor = require('../models/visitor');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// Get aggregated statistics for the admin dashboard
+const mongoose = require('mongoose');
+
+// Platform health check
+router.get('/platform-health', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // 1. Check database connection
+    const dbStatus = mongoose.connection.readyState;
+    const dbStatusMessage =
+      dbStatus === 1 ? 'Connected' :
+      dbStatus === 0 ? 'Disconnected' :
+      dbStatus === 2 ? 'Connecting' :
+      dbStatus === 3 ? 'Disconnecting' : 'Unknown';
+
+    if (dbStatus !== 1) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Platform is unhealthy',
+        dependencies: {
+          database: dbStatusMessage,
+        },
+      });
+    }
+
+    // 2. Check other critical services (e.g., Redis, external APIs) - if any
+
+    // If all checks pass
+    res.status(200).json({
+      status: 'ok',
+      message: 'Platform is healthy',
+      dependencies: {
+        database: dbStatusMessage,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'An error occurred during health check',
+      error: error.message,
+    });
+  }
+});
+
+
 router.get('/statistics', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const [totalInsights, totalServices, totalTeamMembers, totalContactSubmissions] = await Promise.all([
