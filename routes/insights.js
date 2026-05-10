@@ -6,6 +6,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
 
+
 // Custom Cloudinary storage that switches based on field name
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
