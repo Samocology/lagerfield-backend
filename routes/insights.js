@@ -61,14 +61,13 @@ router.get('/:id', async (req, res) => {
 // Create a new insight
 router.post('/', upload.any(), async (req, res) => {
   try {
-    console.log('Request Files:', req.files); // Debugging line
     const { title, body, author, date, tags, category, summary } = req.body;
     const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
     const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
-    console.log('Found File:', fileFile); // Debugging line
-    const imageUrl = imageFile ? imageFile.path : '';
-    const fileUrl = fileFile ? fileFile.path : '';
-    console.log('File URL:', fileUrl); // Debugging line
+    
+    // Clean the URL from Cloudinary before saving
+    const imageUrl = imageFile ? imageFile.path.replace(/`/g, '').trim() : '';
+    const fileUrl = fileFile ? fileFile.path.replace(/`/g, '').trim() : '';
 
     const newInsight = new Insight({
       title,
@@ -95,22 +94,20 @@ router.post('/', upload.any(), async (req, res) => {
 // Update an existing insight
 router.put('/:id', upload.any(), async (req, res) => {
   try {
-    console.log('Request Files:', req.files); // Debugging line
     const { title, body, author, date, tags, category, summary } = req.body;
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 
     const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
     const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
-    console.log('Found File:', fileFile); // Debugging line
 
+    // Clean the URL from Cloudinary before saving
     if (imageFile) {
-      imageUrl = imageFile.path; // Update imageUrl if new image uploaded
+      imageUrl = imageFile.path.replace(/`/g, '').trim();
     }
     if (fileFile) {
-      fileUrl = fileFile.path; // Update fileUrl if new file uploaded
+      fileUrl = fileFile.path.replace(/`/g, '').trim();
     }
-    console.log('File URL:', fileUrl); // Debugging line
 
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
