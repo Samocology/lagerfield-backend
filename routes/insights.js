@@ -20,8 +20,8 @@ const storage = new CloudinaryStorage({
     } else if (file.fieldname === 'file') {
       return {
         folder: 'lagerfield/insights/files',
-        allowed_formats: ['pdf'],
-        resource_type: 'raw'
+        allowed_formats: ['pdf', 'mp4', 'jpeg', 'jpg', 'png', 'gif', 'webp'],
+        resource_type: 'auto'
       };
     }
   }
@@ -62,7 +62,19 @@ router.get('/:id', async (req, res) => {
 // Create a new insight
 router.post('/', upload.any(), async (req, res) => {
   try {
-    const { title, body, author, date, tags, category, summary } = req.body;
+    const { title, body, date, tags, category, summary } = req.body;
+    let author = req.body.author;
+
+    // The author object might be stringified if sent via multipart/form-data
+    if (author && typeof author === 'string') {
+      try {
+        author = JSON.parse(author);
+      } catch (e) {
+        // Fallback for plain string author for backward compatibility
+        author = { name: author };
+      }
+    }
+
     const imageFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
     const fileFile = req.files ? req.files.find(f => f.fieldname === 'file') : null;
     
@@ -95,7 +107,19 @@ router.post('/', upload.any(), async (req, res) => {
 // Update an existing insight
 router.put('/:id', upload.any(), async (req, res) => {
   try {
-    const { title, body, author, date, tags, category, summary } = req.body;
+    const { title, body, date, tags, category, summary } = req.body;
+    let author = req.body.author;
+
+    // The author object might be stringified if sent via multipart/form-data
+    if (author && typeof author === 'string') {
+      try {
+        author = JSON.parse(author);
+      } catch (e) {
+        // Fallback for plain string author for backward compatibility
+        author = { name: author };
+      }
+    }
+
     let imageUrl = req.body.imageUrl; // Keep existing imageUrl if not updated
     let fileUrl = req.body.fileUrl; // Keep existing fileUrl if not updated
 

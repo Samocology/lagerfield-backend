@@ -11,9 +11,15 @@ const insightSchema = new mongoose.Schema({
     required: false
   },
   author: {
-    type: String,
-    required: true,
-    trim: true
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    bio: {
+      type: String,
+      trim: true
+    }
   },
   date: {
     type: Date,
