@@ -38,7 +38,7 @@ const storage = new CloudinaryStorage({
         resource_type: resourceType,
         access_mode: 'public',
         public_id: file.originalname, // Use the full original filename including extension for public_id,
-        public_id: publicId // Use the original filename as public_id
+        public_id: resourceType === 'raw' ? file.originalname : publicId // Use full original name for raw (PDFs), otherwise use publicId without extension
       };
     }
   }
