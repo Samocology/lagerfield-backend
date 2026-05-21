@@ -21,7 +21,8 @@ const storage = new CloudinaryStorage({
       return {
         folder: 'lagerfield/insights/files',
         allowed_formats: ['pdf', 'mp4', 'jpeg', 'jpg', 'png', 'gif', 'webp'],
-        resource_type: 'auto'
+        resource_type: 'auto',
+        access_mode: 'public'
       };
     }
   }
