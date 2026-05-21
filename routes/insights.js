@@ -5,7 +5,7 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
-
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 // Custom Cloudinary storage that switches based on field name
 const storage = new CloudinaryStorage({
@@ -30,7 +30,9 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// Get all insights
+// ============ PUBLIC ROUTES (No Authentication Required) ============
+
+// Get all insights - PUBLIC
 router.get('/', async (req, res) => {
   try {
     const insights = await Insight.find().sort({ date: -1 });
@@ -41,15 +43,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a single insight by ID
+// Get a single insight by ID - PUBLIC
 router.get('/:id', async (req, res) => {
-
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ message: 'Invalid ID format' });
   }
 
   try {
-    const insight = await Insight.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } }, { new: true });
+    const insight = await Insight.findByIdAndUpdate(
+      req.params.id, 
+      { $inc: { views: 1 } }, 
+      { new: true }
+    );
+    
     if (insight) {
       res.json(insight);
     } else {
@@ -60,8 +66,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create a new insight
-router.post('/', upload.any(), async (req, res) => {
+// ============ PROTECTED/ADMIN ROUTES (Authentication Required) ============
+
+// Create a new insight - ADMIN ONLY
+router.post('/', authenticateToken, requireAdmin, upload.any(), async (req, res) => {
   try {
     const { title, body, date, tags, category, summary } = req.body;
     let author = req.body.author;
@@ -94,6 +102,7 @@ router.post('/', upload.any(), async (req, res) => {
       imageUrl,
       fileUrl
     });
+    
     const savedInsight = await newInsight.save();
     res.status(201).json(savedInsight);
   } catch (error) {
@@ -105,8 +114,8 @@ router.post('/', upload.any(), async (req, res) => {
   }
 });
 
-// Update an existing insight
-router.put('/:id', upload.any(), async (req, res) => {
+// Update an existing insight - ADMIN ONLY
+router.put('/:id', authenticateToken, requireAdmin, upload.any(), async (req, res) => {
   try {
     const { title, body, date, tags, category, summary } = req.body;
     let author = req.body.author;
@@ -137,9 +146,20 @@ router.put('/:id', upload.any(), async (req, res) => {
 
     const updatedInsight = await Insight.findByIdAndUpdate(
       req.params.id,
-      { title, body, author, date, tags: tags ? tags.split(',').map(tag => tag.trim()) : [], category, summary, imageUrl, fileUrl},
+      { 
+        title, 
+        body, 
+        author, 
+        date, 
+        tags: tags ? tags.split(',').map(tag => tag.trim()) : [], 
+        category, 
+        summary, 
+        imageUrl, 
+        fileUrl
+      },
       { new: true, runValidators: true }
     );
+    
     if (updatedInsight) {
       res.json(updatedInsight);
     } else {
@@ -151,8 +171,8 @@ router.put('/:id', upload.any(), async (req, res) => {
   }
 });
 
-// Delete an insight
-router.delete('/:id', async (req, res) => {
+// Delete an insight - ADMIN ONLY
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const deletedInsight = await Insight.findByIdAndDelete(req.params.id);
     if (deletedInsight) {

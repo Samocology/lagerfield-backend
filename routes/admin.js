@@ -8,6 +8,22 @@ const mongoose = require('mongoose');
 const Visitor = require('../models/visitor');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
+// ============ PUBLIC ROUTES (No Authentication Required) ============
+
+// POST visitor analytics (for recording/tracking) - PUBLIC
+router.post('/analytics/visitors', async (req, res) => {
+  try {
+    const visitorData = req.body;
+    const visitor = new Visitor(visitorData);
+    await visitor.save();
+    res.status(201).json({ message: 'Visitor data recorded successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ============ PROTECTED/ADMIN ROUTES (Authentication Required) ============
+
 // Platform health check
 router.get('/platform-health', authenticateToken, requireAdmin, async (req, res) => {
   try {
@@ -29,8 +45,6 @@ router.get('/platform-health', authenticateToken, requireAdmin, async (req, res)
       });
     }
 
-    // 2. Check other critical services (e.g., Redis, external APIs) - if any
-
     // If all checks pass
     res.status(200).json({
       status: 'ok',
@@ -49,7 +63,7 @@ router.get('/platform-health', authenticateToken, requireAdmin, async (req, res)
   }
 });
 
-
+// Get dashboard statistics
 router.get('/statistics', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const [totalInsights, totalServices, totalTeamMembers, totalContactSubmissions] = await Promise.all([
@@ -133,18 +147,6 @@ router.get('/analytics/visitors', authenticateToken, requireAdmin, async (req, r
       page: parseInt(page),
       totalPages: Math.ceil(total / parseInt(limit))
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST visitor analytics (for recording/tracking)
-router.post('/analytics/visitors', async (req, res) => {
-  try {
-    const visitorData = req.body;
-    const visitor = new Visitor(visitorData);
-    await visitor.save();
-    res.status(201).json({ message: 'Visitor data recorded successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
