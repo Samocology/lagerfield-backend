@@ -18,11 +18,27 @@ const storage = new CloudinaryStorage({
         transformation: [{ width: 800, height: 600, crop: 'limit' }]
       };
     } else if (file.fieldname === 'file') {
+      let resourceType = 'raw'; // Default for PDFs and other raw files
+      let allowedFormats = ['pdf'];
+      let publicId = file.originalname.split('.')[0]; // Use original filename without extension for public_id
+
+      if (file.mimetype.startsWith('video/')) {
+        resourceType = 'video';
+        allowedFormats = ['mp4', 'mov', 'avi', 'wmv', 'flv', 'webm'];
+      } else if (file.mimetype.startsWith('image/')) {
+        // If an image is uploaded via the 'file' field, treat it as an image
+        resourceType = 'image';
+        allowedFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+      }
+      // For PDFs, resourceType remains 'raw' and allowedFormats remains ['pdf']
+
       return {
         folder: 'lagerfield/insights/files',
-        allowed_formats: ['pdf', 'mp4', 'jpeg', 'jpg', 'png', 'gif', 'webp'],
-        resource_type: 'raw',
-        access_mode: 'public'
+        allowed_formats: allowedFormats,
+        resource_type: resourceType,
+        access_mode: 'public',
+        public_id: file.originalname, // Use the full original filename including extension for public_id,
+        public_id: publicId // Use the original filename as public_id
       };
     }
   }
